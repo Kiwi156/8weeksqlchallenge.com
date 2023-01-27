@@ -1,0 +1,58 @@
+-- 8weeksqlchallenge.com/case-study-2
+
+--A. Pizza Metrics
+--1. How many pizzas were ordered?
+
+SELECT COUNT(order_id) AS Pizzas_ordered
+FROM pizza_runner.customer_orders
+
+
+--2. How many unique customer orders were made?
+
+SELECT COUNT( DISTINCT customer_id) AS Unique_Customers
+FROM pizza_runner.customer_orders 
+
+--3. How many successful orders were delivered by each runner?
+
+SELECT runner_orders.runner_id, COUNT(runner_orders.runner_id) AS successful_orders 
+FROM pizza_runner.runner_orders
+WHERE runner_orders.cancellation NOT IN ('Restaurant Cancellation', 'Customer Cancellation') OR runner_orders.cancellation is NULL
+GROUP BY runner_orders.runner_id
+
+--4. How many of each type of pizza was delivered?
+
+SELECT pizza_names.pizza_name, COUNT(pizza_names.pizza_name) AS Pizzas_delivered
+FROM pizza_runner.pizza_names 
+INNER JOIN pizza_runner.customer_orders
+ON pizza_names.pizza_id = customer_orders.pizza_id
+GROUP BY pizza_names.pizza_name
+
+--5. How many Vegetarian and Meatlovers were ordered by each customer?
+
+SELECT customer_orders.customer_id, pizza_names.pizza_name, COUNT(pizza_names.pizza_name) AS Pizzas_delivered
+FROM pizza_runner.pizza_names 
+INNER JOIN pizza_runner.customer_orders
+ON pizza_names.pizza_id = customer_orders.pizza_id
+GROUP BY customer_orders.customer_id, pizza_names.pizza_name
+ORDER BY customer_id; 
+
+--6. What was the maximum number of pizzas delivered in a single order? 
+
+WITH cte_Pizzas_ordered as
+(SELECT Order_id, Count(order_id) AS Pizzas_ordered
+FROM pizza_runner.customer_orders
+WHERE order_id = order_id
+GROUP BY Order_id
+)
+SELECT Max(Pizzas_ordered)
+FROM cte_Pizzas_ordered
+           
+
+--7. For each customer, how many delivered pizzas had at least 1 change and how many had no changes?
+
+-- The following is a work in progress. 
+
+SELECT Customer_id, Count(pizza_id) AS Pizzas_with_no_changes
+FROM pizza_runner.customer_orders
+WHERE exclusions IS NULL OR exclusions = '' OR extras IS NULL OR extras = ''
+GROUP BY customer_id
