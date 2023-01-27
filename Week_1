@@ -1,0 +1,134 @@
+-- Case study 1. 
+
+-- 1. What is the total amount each customer spent at the restaurant?
+
+SELECT dannys_diner.sales.customer_id,
+       SUM(dannys_diner.menu.price)
+FROM dannys_diner.sales 
+INNER JOIN dannys_diner.menu
+ON sales.product_id = menu.product_id
+GROUP BY dannys_diner.sales.customer_id
+
+
+---2. How many days has each customer visited the restaurant?
+
+SELECT dannys_diner.sales.customer_id,
+       Count(dannys_diner.sales.order_date) AS days_visited_restaurant
+FROM dannys_diner.sales 
+INNER JOIN dannys_diner.menu
+ON sales.product_id = menu.product_id
+GROUP BY dannys_diner.sales.customer_id
+
+--3. What was the first item from the menu purchased by each customer?
+
+SELECT 
+       MIN(dannys_diner.sales.order_date),
+       MIN(dannys_diner.menu.product_name),
+       dannys_diner.sales.customer_id
+  
+FROM dannys_diner.sales 
+INNER JOIN dannys_diner.menu
+ON sales.product_id = menu.product_id
+
+GROUP BY 
+        dannys_diner.sales.customer_id
+		
+
+4. What is the most purchased item on the menu and how many times was it purchased by all customers? 
+
+SELECT 
+       Max(dannys_diner.menu.product_name),
+       Count(dannys_diner.sales.product_id) AS Total_Purchases
+  
+FROM dannys_diner.sales 
+INNER JOIN dannys_diner.menu
+ON sales.product_id = menu.product_id
+GROUP BY
+dannys_diner.menu.product_name
+ORDER BY  Count(dannys_diner.menu.product_name) DESC
+
+
+
+--5. Which item was the most popular for each customer?
+
+SELECT dannys_diner.sales.customer_id,
+       Count(dannys_diner.menu.product_name),
+       dannys_diner.menu.product_name
+FROM dannys_diner.sales 
+INNER JOIN dannys_diner.menu
+ON sales.product_id = menu.product_id
+GROUP BY dannys_diner.sales.customer_id,
+dannys_diner.menu.product_name
+ORDER BY  Count(dannys_diner.menu.product_name) DESC
+
+--6.  Which item was purchased first by the customer after they became a member?
+
+SELECT 
+	dannys_diner.sales.customer_id AS Customer_id,
+	MIN(dannys_diner.menu.product_name) AS Product_name,
+	MIN(dannys_diner.sales.Order_date) AS Order_Date,
+	MIN(dannys_diner.members.join_date) AS Members_Start_Date
+	
+FROM ((dannys_diner.sales 
+INNER JOIN dannys_diner.members ON sales.customer_id = members.customer_id)
+INNER JOIN dannys_diner.menu ON sales.product_id = menu.product_id)
+
+WHERE sales.order_date >= members.join_date
+GROUP BY dannys_diner.sales.customer_id 
+ORDER BY dannys_diner.sales.customer_id ASC
+
+
+--7.Which menu item(s) was purchased just before the customer became a member and when?
+
+SELECT 
+	dannys_diner.sales.customer_id AS Customer_id,
+	MIN(dannys_diner.menu.product_name) AS Product_name,
+	MIN(dannys_diner.sales.Order_date) AS Order_Date,
+	MIN(dannys_diner.members.join_date) AS Members_Start_Date
+	
+FROM ((dannys_diner.sales 
+INNER JOIN dannys_diner.members ON sales.customer_id = members.customer_id)
+INNER JOIN dannys_diner.menu ON sales.product_id = menu.product_id)
+
+WHERE sales.order_date < members.join_date
+GROUP BY dannys_diner.sales.customer_id 
+ORDER BY dannys_diner.sales.customer_id ASC
+
+-- 8. What is the total items and amount spent for each member before they became a member?
+
+SELECT 
+	dannys_diner.sales.customer_id AS Customer_id,
+	MIN(dannys_diner.menu.product_name) AS Product_name,
+	Count(dannys_diner.menu.product_name) AS Total_items,
+	SUM(dannys_diner.menu.price) AS Amount_Spent 
+	
+FROM ((dannys_diner.sales 
+INNER JOIN dannys_diner.members ON sales.customer_id = members.customer_id)
+INNER JOIN dannys_diner.menu ON sales.product_id = menu.product_id)
+
+WHERE sales.order_date < members.join_date
+GROUP BY dannys_diner.sales.customer_id 
+ORDER BY dannys_diner.sales.customer_id ASC
+
+
+-- 9.  If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
+
+With Points as
+(
+Select *, Case When product_id = 1 THEN price*20
+               Else price*10
+	       End as Points
+From dannys_diner.Menu
+)
+Select S.customer_id, Sum(P.points) as Points
+From dannys_diner.Sales S
+Join Points p
+On p.product_id = S.product_id
+Group by S.customer_id
+
+
+
+
+
+
+
